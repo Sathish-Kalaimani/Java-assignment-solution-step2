@@ -8,32 +8,70 @@ import java.util.Map;
  * fields, Query Type
  * */
 public class QueryParameter {
-
+	
+	private String file;
+	private List<String>Logical;
+	private List<String>fields;
+	private List<String>groupby;
+	private List<String>orderby;
+	private List<AggregateFunction> aggregate;
+	private List<Restriction> Restriction;
+	
+	
 	public String getFile() {
-		return null;
+		return file;
+	}
+	
+	public void setFile(String fname) {
+		file = fname;
 	}
 	
 	public List<Restriction> getRestrictions() {
-		return null;
+		return Restriction;
+	}
+	
+	public void setRestriction(List<Restriction> rest) {
+		Restriction = rest;
 	}
 	
 	public List<String> getLogicalOperators() {
-		return null;
+		return Logical;
+	}
+	
+	public void setLogicalOperators(List<String> logic) {
+		Logical = logic;
 	}
 	
 	public List<String> getFields() {
-		return null;
+		return fields;
+	}
+	
+	public void setFields(List<String> field) {
+		fields = field;
 	}
 	
 	public List<AggregateFunction> getAggregateFunctions() {
-		return null;
+		return aggregate;
+	}
+	
+	public void setAggregateFunctions(List<AggregateFunction> agg) {
+		aggregate = agg;
 	}
 	
 	public List<String> getGroupByFields() {
-		return null;
+		return groupby;
+	}
+	
+	public void setGroupByFields(List<String> group) {
+		groupby = group;
 	}
 	
 	public List<String> getOrderByFields() {
-		return null;
+		return orderby;
 	}
+	
+	public void setOrderByFields(List<String> order) {
+		orderby = order;
+	}
+	
 }
