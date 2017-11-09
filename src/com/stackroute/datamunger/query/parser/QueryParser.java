@@ -3,6 +3,7 @@ package com.stackroute.datamunger.query.parser;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class QueryParser {
 
@@ -14,20 +15,16 @@ public class QueryParser {
 	 */
 	public QueryParameter parseQuery(String queryString) {
 		
-		queryParameter.setFile(FileName(queryString));
-		queryParameter.setFields(Fields(queryString));
+		queryParameter.setFile(getFile(queryString));
+		queryParameter.setFields(getFields(queryString));
 		queryParameter.setLogicalOperators(LogicalOperators(queryString));
-		queryParameter.setGroupByFields(GroupByFields(queryString));
-		queryParameter.setOrderByFields(OrderByFields(queryString));
+		queryParameter.setGroupByFields(getGroupByFields(queryString));
+		queryParameter.setOrderByFields(getOrderByFields(queryString));
 		queryParameter.setAggregateFunctions(aggr(queryString));
 		queryParameter.setRestriction(Rest(queryString));
 		
-		queryParameter.getFile();
-		queryParameter.getFields();
 		queryParameter.getLogicalOperators();
-		queryParameter.getGroupByFields();
-		queryParameter.getOrderByFields();
-		queryParameter.getAggregateFunctions();
+				queryParameter.getAggregateFunctions();
 		queryParameter.getRestrictions();
 		
 		
@@ -35,23 +32,16 @@ public class QueryParser {
 		
 	}
 	
-		public String FileName(String queryString) {
+		public String getFile(String queryString) {
 		
-				String filename=null;
-				if(queryString.isEmpty()) {
-					return null;
-				}else {
-					if(queryString.contains("where")) {
-						filename = queryString.substring(queryString.indexOf("from "), queryString.indexOf(" where")).replace("from", "").trim();
-					}else if(queryString.contains("order")){
-						filename = queryString.substring(queryString.indexOf("from "),queryString.indexOf("order")).replace("from", "").trim();
-					}else {
-					
-						filename = queryString.substring(queryString.indexOf("from ")).replace("from", "").trim();
-					}
-				}
-		
-				return filename.toLowerCase();
+			String file = queryString.toLowerCase();
+			if (Pattern.matches("(.*where.*)|(.*group by.*)|(.*order by.*)", file)) {
+				file = file.split("from")[1].split("where|group|order")[0].trim();
+				return file;
+			} else {
+				file = file.split("from")[1].trim();
+				return file;
+			}
 			}
 	
 		/*
@@ -62,21 +52,16 @@ public class QueryParser {
 		 * "city". Please note that we can have more than one order by fields.
 		 */
 		
-		public List<String> OrderByFields(String queryString) {
+		public List<String> getOrderByFields(String queryString) {
 			
-			String[] oby = null;
-			List<String>orderby = new ArrayList<String>();
-			if(queryString.isEmpty()) {
-				return null;
-				
-			}else if(queryString.contains("order")) {
-				String field = queryString.substring(queryString.indexOf("order by ")).replace("order by ", "");
-				oby = field.split(" ");
-			}else {
+			String o = queryString.toLowerCase().trim();
+			if (Pattern.matches("(.*order by.*)", o)) {
+				o = o.split("order by")[1].trim();
+				List<String> order = new ArrayList<String>(Arrays.asList(o.split(",")));
+				return order;
+			} else {
 				return null;
 			}
-			orderby = Arrays.asList(oby);
-			return orderby;
 			}
 		
 		
@@ -106,24 +91,19 @@ public class QueryParser {
 		 * "city". Please note that we can have more than one group by fields.
 		 */
 		
-		public List<String> GroupByFields(String queryString) {
+		public List<String> getGroupByFields(String queryString) {
 			
-			String[] gby = null;
-			String field ="";
-			if(queryString.isEmpty()) {
-				return null;
-				
-			}else if(queryString.contains("group by") && queryString.contains("order by") ){
-				field = queryString.substring(queryString.indexOf("group by "),queryString.indexOf("order")).replace("group by ", "").trim();
-				gby = field.split(" ");
-			}else if(queryString.contains("group")){
-				field = queryString.substring(queryString.indexOf("group by ")).replace("group by ", "");
-				gby = field.split(" ");
-			}else {
+			String groupby = queryString.toLowerCase().trim();
+			List<String> group = new ArrayList<String>();
+			if (Pattern.matches("(.*group by.*)(.*order by.*)", groupby)) {
+				groupby = groupby.split("group by")[1].trim().split("order by")[0].trim();
+			} else if (Pattern.matches("(.*group by.*)", groupby)) {
+				groupby = groupby.split("group by")[1].trim();
+			} else {
 				return null;
 			}
-			List<String>groupby = Arrays.asList(gby);
-			return groupby;
+			group = Arrays.asList(groupby.split(","));
+			return group;
 		}
 		
 		/*
@@ -135,20 +115,20 @@ public class QueryParser {
 		 * Hence, consider this while parsing.
 		 */
 		
-		public List<String> Fields(String queryString) {
+		public List<String> getFields(String queryString) {
 			
-			String[] f = null;
-			if(queryString.isEmpty()) {
-				 return null;
-			}else {
-				String field = queryString.substring(queryString.indexOf("select"), queryString.indexOf("from")).replace("select", "").trim();
-				f = field.split(",");
-				for(int i=0;i<f.length;i++) {
-					f[i] = f[i].trim();
+			String field = queryString.toLowerCase().trim();
+			List<String> fields = new ArrayList<String>();
+			field = field.toLowerCase();
+			field = field.split("select")[1].split("from")[0].trim();
+			/*if (field.contains("*")) {
+				return ;
+			} else {*/
+				String[] f = field.split(",");
+				for(String s: f) {
+					fields.add(s.trim());
 				}
-			}	
-			List<String>fields = Arrays.asList(f);
-			return fields;
+				return fields;
 		}
 		
 		/*
@@ -173,20 +153,17 @@ public class QueryParser {
 		
 		public String Conditions(String queryString) {
 
-			String con = getConditionsPartQuery(queryString);
-			
-			if(con==null) {
-				con= null;
-			}else if(con.contains("and") && con.contains("or")) {
-				con = con.replace(" and ", ",").trim().replace(" or ", ",").trim();
-			}else if(con.contains("and")) {
-				con = con.replace(" and ", ",").trim();
-			}else if(con.contains("or")) {
-				con = con.replace(" or ", ",").trim();
-			}else {
-				return con;
+			String conditions = null;
+			//queryString = queryString.toLowerCase();
+			if (Pattern.matches("(.*where.*)(.*group.*)(.*order.*)", queryString)) {
+				conditions = queryString.split("where")[1].trim().split("group by|order by")[0].trim();
+			} else if (Pattern.matches("(.*where.*)", queryString)) {
+				conditions = queryString.split("where")[1].trim();
+			} else {
+				return null;
 			}
-			return con;
+			
+			return conditions;
 		}
 		
 		/*
@@ -201,22 +178,19 @@ public class QueryParser {
 		
 		public List<String> LogicalOperators(String queryString) {
 			
-			String Cons = getConditionsPartQuery(queryString);
-			ArrayList<String> list = null;
-			if(Cons!=null) {
-				Cons = Cons.trim();
-				String[] c = Cons.split(" ");
-				list = new ArrayList<String>();
-				for (int i=0;i<c.length;i++) {
-					if(c[i].equals("and") || c[i].equals("or")){
-						list.add(c[i]);
+			String operators = Conditions(queryString);
+			List<String> operator = new ArrayList<String>();
+			if (operators != null) {
+				String[] ope = operators.split("\\s+");
+				for (String s : ope) {
+					if (Pattern.matches("(and)|(or)", s)) {
+						operator.add(s);
 					}
 				}
-			}else {
+				return operator;
+			} else {
 				return null;
-			}		
-			return list;
-
+			}
 		}
 		
 		/*

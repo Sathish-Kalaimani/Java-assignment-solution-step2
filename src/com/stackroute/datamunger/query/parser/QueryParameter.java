@@ -1,7 +1,6 @@
 package com.stackroute.datamunger.query.parser;
 
 import java.util.List;
-import java.util.Map;
 /* 
  * This class will contain the elements of the parsed Query String such as conditions,
  * logical operators,aggregate functions, file name, fields group by fields, order by
